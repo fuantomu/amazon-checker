@@ -1,12 +1,6 @@
-import threading
 import bs4
 import requests
-import schedule
-from time import sleep
 from helper.product import Product
-
-
-available = False
 
 
 def get_soup(url):
@@ -28,60 +22,10 @@ def check_soup(soup):
     delivery_check = str(delivery_date).lower()
 
     if "stock" in check or (add_to_cart is not None and "delivery" in delivery_check):
-        #global available
         print("IN STOCK")
         return True
     return False
 
-
-def run_continuously(interval=1):
-    """Continuously run, while executing pending jobs at each
-    elapsed time interval.
-    @return cease_continuous_run: threading. Event which can
-    be set to cease continuous run. Please note that it is
-    *intended behavior that run_continuously() does not run
-    missed jobs*. For example, if you've registered a job that
-    should run every minute and you set a continuous run
-    interval of one hour then your job won't be run 60 times
-    at each interval but only once.
-    """
-    cease_continuous_run = threading.Event()
-
-    class ScheduleThread(threading.Thread):
-        @classmethod
-        def run(cls):
-            while not cease_continuous_run.is_set():
-                schedule.run_pending()
-                global available
-                if get_result():
-                    available = False
-                    break
-                sleep(interval * 60 + 1)
-
-    continuous_thread = ScheduleThread()
-    continuous_thread.start()
-    return cease_continuous_run
-
-
-def schedule_check(url, time_in_minutes=1):
-    global available
-    soup = get_soup(url)
-    check_soup(soup)
-
-    if get_result():
-        pass
-    else:
-        schedule.every(time_in_minutes).minutes.do(check_soup, soup)
-        return run_continuously()
-
-
-def get_result():
-    global available
-    return available
-
-def reset_available():
-    global available
-    available = False
 
 def get_product(url):
     soup = get_soup(url)

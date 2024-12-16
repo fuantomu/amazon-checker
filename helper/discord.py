@@ -1,5 +1,3 @@
-from helper.product import Product
-from discord import Embed
 from discord.ext import commands, tasks
 
 current_message = None
@@ -16,28 +14,17 @@ def set_current_message(msg):
     current_message = msg
 
 
-async def update_embedded_post(url, product: Product):
-    global current_message
-    if current_message is not None:
-        embedded_msg = Embed(
-            title=product.title,
-            url=url,
-            image=product.image,
-            description=f"Current Price: {product.price}",
-        )
-        await current_message.edit(embed=embedded_msg)
-
-
 async def update_discord_post(msg):
     global current_message
     if current_message is not None:
-        await current_message.edit(content=msg)
+        current_message = await current_message.edit(content=msg)
 
 
 async def send_discord_post(msg):
     global context
+    global current_message
     if context is not None:
-        await context.send(f"{msg}")
+        current_message = await context.send(f"{msg}")
 
 
 from check import check_soup, get_soup, get_product
@@ -62,7 +49,6 @@ class AmazonChecker(commands.Cog):
     async def check(self):
         product = get_product(self.url)
         current_msg = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - Current Price: {product.price}"
-        await update_discord_post(current_msg)
 
         if check_soup(self.soup) == 0:
             print(f"Last check at: {current_msg}")
@@ -70,14 +56,11 @@ class AmazonChecker(commands.Cog):
         else:
             await update_discord_post(f"IT'S AVAILABLE: {current_msg}")
             self.cog_unload()
+            global context
+            await context.send(f"<@{context.user.id}>")
+            set_current_message(None)
 
     @check.before_loop
     async def before_check(self):
         print("waiting...")
         await self.bot.wait_until_ready()
-        
-    @check.after_loop
-    async def after_check(self):
-        global context
-        await context.send(f"<@{context.user.id}>")
-        set_current_message(None)
