@@ -20,7 +20,7 @@ def get_soup(url):
     return soup
 
 
-def check(soup):
+def check_soup(soup):
     div_case = soup.find("div", id="availability")
     add_to_cart = soup.find("input", id="add-to-cart-button")
     delivery_date = soup.find("div", id="mir-layout-DELIVERY_BLOCK")
@@ -28,9 +28,10 @@ def check(soup):
     delivery_check = str(delivery_date).lower()
 
     if "stock" in check or (add_to_cart is not None and "delivery" in delivery_check):
-        global available
+        #global available
         print("IN STOCK")
-        available = True
+        return True
+    return False
 
 
 def run_continuously(interval=1):
@@ -65,12 +66,12 @@ def run_continuously(interval=1):
 def schedule_check(url, time_in_minutes=1):
     global available
     soup = get_soup(url)
-    check(soup)
+    check_soup(soup)
 
     if get_result():
         pass
     else:
-        schedule.every(time_in_minutes).minutes.do(check, soup)
+        schedule.every(time_in_minutes).minutes.do(check_soup, soup)
         return run_continuously()
 
 
