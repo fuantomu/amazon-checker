@@ -20,7 +20,7 @@ current_check = None
     description="Tracks amazon availability",
     guild_ids=os.getenv("GUILD_IDS").split(","),
 )
-async def track(ctx, url, time_in_minutes=0.1):
+async def track(ctx, url, update_time_in_minutes=1):
     set_context(ctx)
 
     await ctx.defer(ephemeral=False)
@@ -38,7 +38,7 @@ async def track(ctx, url, time_in_minutes=0.1):
     await send_discord_post("Checking Availability")
 
     global current_check
-    current_check = AmazonChecker(bot, url, float(time_in_minutes))
+    current_check = AmazonChecker(bot, url, update_time_in_minutes=float(update_time_in_minutes))
 
 
 @bot.slash_command(

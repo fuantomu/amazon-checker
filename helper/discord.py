@@ -32,27 +32,34 @@ from datetime import datetime
 
 
 class AmazonChecker(commands.Cog):
-    loop_time = 1.0
+    update_loop_time = 1.0
 
-    def __init__(self, bot, url, time_in_minutes=1.0):
-        global loop_time
-        loop_time = time_in_minutes
+    def __init__(self, bot, url, update_time_in_minutes=1.0):
+        global update_loop_time
+        update_loop_time = update_time_in_minutes
         self.url = url
         self.bot = bot
         self.soup = get_soup(self.url)
+        self.start_time = None
         self.check.start()
 
     def cog_unload(self):
         self.check.cancel()
 
-    @tasks.loop(minutes=loop_time)
+    @tasks.loop(seconds=10.0)
     async def check(self):
         product = get_product(self.url)
-        current_msg = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - Current Price: {product.price}"
+        current_time = datetime.now()
+        current_msg = f"{current_time.strftime('%Y-%m-%d %H:%M:%S')} - Current Price: {product.price}"
 
         if check_soup(self.soup) == 0:
             print(f"Last check at: {current_msg}")
-            await update_discord_post(f"Last check at: {current_msg}")
+            
+            time_difference = current_time-self.start_time
+            global update_loop_time
+            if time_difference.total_seconds() >= update_loop_time * 60.0:
+                self.start_time = datetime.now()
+                await update_discord_post(f"Last check at: {current_msg}")
         else:
             await update_discord_post(f"IT'S AVAILABLE: {current_msg}")
             self.cog_unload()
@@ -64,3 +71,5 @@ class AmazonChecker(commands.Cog):
     async def before_check(self):
         print("waiting...")
         await self.bot.wait_until_ready()
+        self.start_time = datetime.now()
+        await update_discord_post(f"Last check at: {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}")

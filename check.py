@@ -1,11 +1,11 @@
 import bs4
 import requests
 from helper.product import Product
-
+from random import randint
 
 def get_soup(url):
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",
+        "User-Agent": f"Mozilla/6.0 (Windows NT 6.1) AppleWebKit/537.{randint(0,99)} (KHTML, like Gecko) Chrome/41.0.{randint(2000,3000)}.{randint(0,9)} Safari/537.{randint(0,99)}",
     }
     res = requests.get(url, headers=headers)
     res.raise_for_status()
@@ -30,3 +30,7 @@ def check_soup(soup):
 def get_product(url):
     soup = get_soup(url)
     return Product(soup)
+
+if __name__ == "__main__":
+    url = "https://www.amazon.de/-/en/dp/B0DKFMSMYK"
+    print(get_soup(url))
