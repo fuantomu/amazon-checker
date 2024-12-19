@@ -16,18 +16,15 @@ class Product:
             if soup.select_one("span.a-offscreen") is not None
             else None
         )
-        self.previous_price = None
         
     def extract_price(self, text):
         try:
-            new_price = float(text[1:])
-            self.previous_price = new_price
-            return new_price
+            return float(text[1:])
         except:
-            if "Page" in text:
-                return self.previous_price
-            else:
-                return text
+            return None
+            
+    def __eq__(self, object):
+        return self.title == object.title and self.price == object.price
 
     def __repr__(self):
         return str(self.__dict__)

@@ -45,6 +45,7 @@ class AmazonChecker(commands.Cog):
         self.last_price = None
         self.first_check = True
         self.ping_on_price_change = ping_on_price_change
+        self.product = get_product(self.url)
         self.check.start()
 
     def cog_unload(self):
@@ -53,6 +54,9 @@ class AmazonChecker(commands.Cog):
     @tasks.loop(seconds=30.0)
     async def check(self):
         product = get_product(self.url)
+        if self.product != product:
+            self.last_price = self.product.price
+            self.product.price = product.price
         current_time = datetime.now()
         current_msg = f"{current_time.strftime('%Y-%m-%d %H:%M:%S')} - Current Price: €{product.price}"
 
@@ -66,9 +70,9 @@ class AmazonChecker(commands.Cog):
             if time_difference.total_seconds() >= self.update_loop_time * 60.0:
                 self.start_time = datetime.now()
                 await update_discord_post(f"Last check at: {current_msg} - Not in stock")
-            if product.price != self.last_price and self.last_price is not None:
+            if self.product.price != self.last_price and self.last_price is not None:
                 global context
-                await send_discord_post(f"{'<@{context.user.id}>'if self.ping_on_price_change else ''}\nPrice has changed from €{self.last_price} to €{product.price}")
+                await send_discord_post(f"{'<@{context.user.id}>'if self.ping_on_price_change else ''}\nPrice has changed from €{self.last_price} to €{self.product.price}")
         else:
             await update_discord_post(f"IT'S AVAILABLE: {current_msg}")
             self.cog_unload()
