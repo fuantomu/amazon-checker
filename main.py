@@ -42,14 +42,20 @@ async def track(ctx, url, update_time_in_minutes=1, ping_on_price_change=False):
 
 
 @bot.slash_command(
-    name="stop_track",
+    name="stop",
     description="Stops the tracking",
     guild_ids=os.getenv("GUILD_IDS").split(","),
 )
-async def stop_track(ctx):
+async def stop(ctx):
+    await ctx.defer(ephemeral=False)
     global current_check
     if current_check is not None:
+        await ctx.followup.send("Stopped tracking")
         current_check.cog_unload()
+        current_check = None
+    else:
+        await ctx.followup.send("There was no tracking")
+    
 
 
 if __name__ == "__main__":
