@@ -54,7 +54,7 @@ class AmazonChecker(commands.Cog):
     @tasks.loop(seconds=30.0)
     async def check(self):
         product = get_product(self.url)
-        if self.product != product:
+        if self.product != product and product.price is not None:
             self.last_price = self.product.price
             self.product.price = product.price
         current_time = datetime.now()
