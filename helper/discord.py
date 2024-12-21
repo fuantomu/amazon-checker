@@ -49,6 +49,8 @@ class AmazonChecker(commands.Cog):
         self.check.start()
 
     def cog_unload(self):
+        global current_message
+        current_message = None
         self.check.cancel()
 
     @tasks.loop(seconds=30.0)
